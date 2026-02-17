@@ -6,6 +6,9 @@ module Api
       class RegistrationsController < Devise::RegistrationsController
         respond_to :json
 
+        # Disable parameter wrapping for this controller
+        wrap_parameters false
+
         private
 
         def respond_with(resource, _opts = {})

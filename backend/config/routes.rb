@@ -24,6 +24,9 @@ Rails.application.routes.draw do
                    registrations: 'api/v1/auth/registrations'
                  }
 
+      # Test endpoint for debugging
+      post 'test/echo', to: 'test#echo'
+
       # Resource routes will be added here as we build features
     end
   end
