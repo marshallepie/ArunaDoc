@@ -4,8 +4,6 @@ services:
     name: arunadoc-db
     plan: starter
     region: oregon
-    databaseName: arunadoc_production
-    databaseUser: arunadoc_user
 
   # Redis Cache
   - type: redis
@@ -13,7 +11,6 @@ services:
     plan: starter
     region: oregon
     ipAllowList: []
-    maxmemoryPolicy: allkeys-lru
 
   # Backend API (Rails)
   - type: web
