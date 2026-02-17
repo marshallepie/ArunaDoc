@@ -2,19 +2,17 @@ services:
   # PostgreSQL Database
   - type: pserv
     name: arunadoc-db
-    plan: free
-    env: ruby
+    plan: starter
     region: oregon
-    databases:
-      - name: arunadoc_production
-        databaseName: arunadoc_production
-        user: arunadoc_user
+    databaseName: arunadoc_production
+    databaseUser: arunadoc_user
 
   # Redis Cache
   - type: redis
     name: arunadoc-redis
-    plan: free
+    plan: starter
     region: oregon
+    ipAllowList: []
     maxmemoryPolicy: allkeys-lru
 
   # Backend API (Rails)
@@ -24,7 +22,7 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     region: oregon
-    plan: free
+    plan: starter
     healthCheckPath: /health
     envVars:
       - key: RAILS_ENV
@@ -47,7 +45,7 @@ services:
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: RAILS_MASTER_KEY
-        sync: false # You'll add this manually
+        sync: false
 
   # Frontend (React)
   - type: web
@@ -56,7 +54,7 @@ services:
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
     region: oregon
-    plan: free
+    plan: starter
     envVars:
       - key: VITE_API_URL
         fromService:
