@@ -11,7 +11,20 @@ Rails.application.routes.draw do
   # API routes will be namespaced under /api/v1
   namespace :api do
     namespace :v1 do
-      # Routes will be added here as we build features
+      # Authentication routes
+      devise_for :users,
+                 path: 'auth',
+                 path_names: {
+                   sign_in: 'sign_in',
+                   sign_out: 'sign_out',
+                   registration: 'sign_up'
+                 },
+                 controllers: {
+                   sessions: 'api/v1/auth/sessions',
+                   registrations: 'api/v1/auth/registrations'
+                 }
+
+      # Resource routes will be added here as we build features
     end
   end
 

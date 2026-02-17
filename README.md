@@ -39,7 +39,7 @@ ArunaDoc enables consultation recording, AI transcription, structured clinical n
 
 4. **Verify health**
    ```bash
-   curl http://localhost:3000/health
+   curl http://localhost:3004/health
    ```
 
 Expected response:
@@ -54,7 +54,7 @@ Expected response:
 
 ## 📋 Services
 
-- **Backend API:** http://localhost:3000
+- **Backend API:** http://localhost:3004
 - **PostgreSQL:** localhost:5433
 - **Redis:** localhost:6379
 

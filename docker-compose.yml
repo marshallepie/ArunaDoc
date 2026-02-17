@@ -34,7 +34,7 @@ services:
       - ./backend:/app
       - bundle_cache:/usr/local/bundle
     ports:
-      - "3000:3000"
+      - "3004:3000"
     depends_on:
       db:
         condition: service_healthy

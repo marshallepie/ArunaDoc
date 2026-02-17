@@ -44,10 +44,10 @@
 ## 🔄 Current State
 
 **All foundation services are running:**
-- Backend API: http://localhost:3000
+- Backend API: http://localhost:3004
 - PostgreSQL: localhost:5433
 - Redis: localhost:6379
-- Health Check: http://localhost:3000/health ✅
+- Health Check: http://localhost:3004/health ✅
 
 **Response from health endpoint:**
 ```json
