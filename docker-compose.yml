@@ -66,6 +66,20 @@ services:
       REDIS_URL: redis://redis:6379/0
       RAILS_ENV: development
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: http://localhost:3004
+
 volumes:
   postgres_data:
   bundle_cache:

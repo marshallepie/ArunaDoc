@@ -7,7 +7,7 @@ ArunaDoc enables consultation recording, AI transcription, structured clinical n
 ## 🏗️ Architecture
 
 - **Backend:** Rails 7.1 API (Ruby 3.2.2)
-- **Frontend:** React 18 + Vite + TypeScript (planned)
+- **Frontend:** React 18 + Vite + TypeScript
 - **Database:** PostgreSQL 16
 - **Cache/Jobs:** Redis 7 + Sidekiq
 - **Infrastructure:** Docker + Docker Compose
@@ -54,6 +54,7 @@ Expected response:
 
 ## 📋 Services
 
+- **Frontend:** http://localhost:5173
 - **Backend API:** http://localhost:3004
 - **PostgreSQL:** localhost:5433
 - **Redis:** localhost:6379
@@ -62,6 +63,7 @@ Expected response:
 
 ### View logs
 ```bash
+docker-compose logs -f frontend
 docker-compose logs -f backend
 docker-compose logs -f sidekiq
 ```
@@ -91,6 +93,50 @@ docker-compose down
 - **[FRD.md](FRD.md)** - Functional Requirements Document
 - **[SETUP_PLAN.md](SETUP_PLAN.md)** - Detailed implementation plan
 - **[DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md)** - Current development status and next steps
+- **[AUTH_SOLUTION.md](AUTH_SOLUTION.md)** - Authentication implementation details
+
+## 🔑 Authentication
+
+### Test Users
+
+The system comes with pre-seeded test users:
+
+- **Consultant:** consultant@arunadoc.com / Password123!
+- **Secretary:** secretary@arunadoc.com / Password123!
+
+### Using the Application
+
+1. **Access the frontend:**
+   ```bash
+   open http://localhost:5173
+   ```
+
+2. **Login with test credentials**
+   - Email: consultant@arunadoc.com
+   - Password: Password123!
+
+3. **JWT tokens:**
+   - Automatically managed by the frontend
+   - 15-minute expiration
+   - Stored in localStorage
+   - Revoked on logout
+
+### API Authentication
+
+```bash
+# Login
+curl -i -X POST http://localhost:3004/api/v1/auth/sign_in \
+  -H "Content-Type: application/json" \
+  -d '{"user":{"email":"consultant@arunadoc.com","password":"Password123!"}}'
+
+# Use the token from Authorization header
+curl -H "Authorization: Bearer <JWT_TOKEN>" \
+  http://localhost:3004/api/v1/some_endpoint
+
+# Logout
+curl -X DELETE http://localhost:3004/api/v1/auth/sign_out \
+  -H "Authorization: Bearer <JWT_TOKEN>"
+```
 
 ## 🔐 Security
 
@@ -117,13 +163,16 @@ docker-compose down
 - **API:** rack-cors, faraday
 - **Testing:** rspec-rails, factory_bot_rails, faker
 
-### Frontend (Planned)
+### Frontend
 - React 18
-- Vite
+- Vite 7
 - TypeScript
+- React Router DOM (routing)
 - Zustand (state management)
-- TanStack Query
-- Radix UI + Tailwind CSS
+- TanStack Query (data fetching)
+- React Hook Form + Zod (form validation)
+- Axios (API client)
+- Radix UI + Tailwind CSS (UI components)
 
 ## 🗺️ Project Status
 
@@ -134,15 +183,26 @@ docker-compose down
 - Database and Redis connected
 - Health check endpoint
 
-🔄 **Phase 1b - In Progress**
+✅ **Phase 1b - Authentication (Completed)**
 - User authentication (Devise + JWT)
-- Core data models
-- API endpoints
-- Authorization policies
+- JWT token generation and revocation
+- Login/Logout endpoints
+- User roles (consultant, secretary, admin)
+- User status management
 
-📋 **Phase 1c - Planned**
-- Frontend setup
-- Authentication UI
+✅ **Phase 1c - Frontend (Completed)**
+- React + TypeScript + Vite setup
+- Authentication UI (Login page)
+- Protected routes
+- JWT token management
+- API client with interceptors
+- Zustand auth store
+- Dashboard page
+
+📋 **Phase 2 - Planned**
+- Core data models (consultations, patients)
+- API endpoints for consultations
+- Authorization policies
 - Basic consultation workflow
 
 ## 📝 License
