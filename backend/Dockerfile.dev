@@ -1,0 +1,19 @@
+FROM ruby:3.2.2-alpine
+
+RUN apk add --no-cache \
+    build-base \
+    postgresql-dev \
+    postgresql-client \
+    tzdata \
+    nodejs \
+    yarn \
+    git
+
+WORKDIR /app
+
+# Install Rails
+RUN gem install rails -v '~> 7.1.0'
+
+EXPOSE 3000
+
+CMD ["rails", "server", "-b", "0.0.0.0"]
