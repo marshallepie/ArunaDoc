@@ -1,0 +1,7 @@
+# Railway configuration for monorepo deployment
+
+[build]
+builder = "DOCKERFILE"
+
+[deploy]
+startCommand = "echo 'This is a monorepo. Deploy backend and frontend services separately.'"
