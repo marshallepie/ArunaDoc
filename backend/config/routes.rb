@@ -27,7 +27,13 @@ Rails.application.routes.draw do
       # Test endpoint for debugging
       post 'test/echo', to: 'test#echo'
 
-      # Resource routes will be added here as we build features
+      # Resource routes
+      resources :patients
+      resources :consultations do
+        member do
+          post :upload_recording
+        end
+      end
     end
   end
 
