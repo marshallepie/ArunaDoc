@@ -1,9 +1,8 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database
-# This runs db:prepare which creates/migrates the database
-if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
-  ./bin/rails db:prepare
-fi
+# Always run database migrations on startup
+echo "Running database migrations..."
+./bin/rails db:migrate
 
+echo "Starting Rails server..."
 exec "${@}"
