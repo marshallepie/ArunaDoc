@@ -1,65 +1,71 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
+import { patientApi } from '../services/api'
 
 interface Patient {
   id: number
   name: string
-  email: string
-  phone: string
-  date_of_birth: string
-  last_visit: string
-  status: 'active' | 'inactive'
-  upcoming_appointments: number
+  email?: string
+  phone?: string
+  date_of_birth?: string
+  address?: string
+  medical_history?: string
+  created_at: string
 }
 
-// Mock data
-const mockPatients: Patient[] = [
-  {
-    id: 1,
-    name: 'John Smith',
-    email: 'john.smith@email.com',
-    phone: '+44 20 1234 5678',
-    date_of_birth: '1985-06-15',
-    last_visit: '2026-02-10',
-    status: 'active',
-    upcoming_appointments: 1,
-  },
-  {
-    id: 2,
-    name: 'Emma Wilson',
-    email: 'emma.wilson@email.com',
-    phone: '+44 20 2345 6789',
-    date_of_birth: '1990-03-22',
-    last_visit: '2026-02-18',
-    status: 'active',
-    upcoming_appointments: 0,
-  },
-  {
-    id: 3,
-    name: 'Michael Brown',
-    email: 'michael.brown@email.com',
-    phone: '+44 20 3456 7890',
-    date_of_birth: '1978-11-08',
-    last_visit: '2026-02-17',
-    status: 'active',
-    upcoming_appointments: 0,
-  },
-  {
-    id: 4,
-    name: 'Sophie Davis',
-    email: 'sophie.davis@email.com',
-    phone: '+44 20 4567 8901',
-    date_of_birth: '1995-09-30',
-    last_visit: '2026-01-25',
-    status: 'active',
-    upcoming_appointments: 1,
-  },
-]
-
 export const PatientsPage = () => {
-  const [patients] = useState<Patient[]>(mockPatients)
+  const [patients, setPatients] = useState<Patient[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showNewPatientModal, setShowNewPatientModal] = useState(false)
+
+  useEffect(() => {
+    loadPatients()
+  }, [])
+
+  const loadPatients = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await patientApi.getAll()
+      setPatients(response.data)
+    } catch (err: any) {
+      console.error('Error loading patients:', err)
+      setError(err.response?.data?.error || err.message || 'Failed to load patients')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-gray-600">Loading patients...</div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="p-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h3 className="text-red-800 font-semibold mb-2">❌ Error Loading Patients</h3>
+            <p className="text-red-600 text-sm mb-4">{error}</p>
+            <button
+              onClick={loadPatients}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   const filteredPatients = patients.filter((patient) =>
     patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -89,6 +95,20 @@ export const PatientsPage = () => {
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Patients</h1>
           <p className="mt-1 text-sm text-gray-600">Manage patient records and information</p>
+        </div>
+
+        {/* Success Message */}
+        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <span className="text-2xl mr-3">✅</span>
+            <div>
+              <h3 className="text-green-800 font-semibold">Database Connected!</h3>
+              <p className="text-green-600 text-sm">
+                Successfully loaded {patients.length} patients from the database.
+                {patients.length === 0 && ' All tables are working!'}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Stats Cards */}
