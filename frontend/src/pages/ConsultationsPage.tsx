@@ -1,63 +1,80 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
+import { consultationApi } from '../services/api'
 
 interface Consultation {
   id: number
   patient_name: string
+  patient_id: number
   date: string
   time: string
   type: string
   status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled'
+  processing_status: string
   consultant: string
   notes?: string
+  created_at: string
 }
 
-// Mock data - will be replaced with API calls later
-const mockConsultations: Consultation[] = [
-  {
-    id: 1,
-    patient_name: 'John Smith',
-    date: '2026-02-18',
-    time: '09:00',
-    type: 'Initial Consultation',
-    status: 'scheduled',
-    consultant: 'Dr. Sarah Johnson',
-  },
-  {
-    id: 2,
-    patient_name: 'Emma Wilson',
-    date: '2026-02-18',
-    time: '10:30',
-    type: 'Follow-up',
-    status: 'in-progress',
-    consultant: 'Dr. Sarah Johnson',
-  },
-  {
-    id: 3,
-    patient_name: 'Michael Brown',
-    date: '2026-02-17',
-    time: '14:00',
-    type: 'Review',
-    status: 'completed',
-    consultant: 'Dr. Sarah Johnson',
-    notes: 'Patient responding well to treatment',
-  },
-  {
-    id: 4,
-    patient_name: 'Sophie Davis',
-    date: '2026-02-19',
-    time: '11:00',
-    type: 'Initial Consultation',
-    status: 'scheduled',
-    consultant: 'Dr. Sarah Johnson',
-  },
-]
-
 export const ConsultationsPage = () => {
-  const [consultations] = useState<Consultation[]>(mockConsultations)
+  const [consultations, setConsultations] = useState<Consultation[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [showNewConsultationModal, setShowNewConsultationModal] = useState(false)
+
+  useEffect(() => {
+    loadConsultations()
+  }, [])
+
+  const loadConsultations = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await consultationApi.getAll()
+      setConsultations(response.data)
+    } catch (err: any) {
+      console.error('Error loading consultations:', err)
+      setError(err.response?.data?.error || err.message || 'Failed to load consultations')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-gray-600">Loading consultations...</div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="p-6">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h3 className="text-yellow-800 font-semibold mb-2">Consultations API</h3>
+            <p className="text-yellow-600 text-sm mb-4">
+              {error}
+            </p>
+            <p className="text-sm text-yellow-700 mb-4">
+              Don't worry - we'll build the consultation recording feature step by step!
+            </p>
+            <button
+              onClick={loadConsultations}
+              className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   const filteredConsultations = consultations.filter((consultation) => {
     const matchesSearch = consultation.patient_name.toLowerCase().includes(searchQuery.toLowerCase())
