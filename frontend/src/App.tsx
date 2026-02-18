@@ -2,6 +2,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { ConsultationsPage } from './pages/ConsultationsPage'
+import { PatientsPage } from './pages/PatientsPage'
+import { CalendarPage } from './pages/CalendarPage'
+import { DocumentsPage } from './pages/DocumentsPage'
+import { SettingsPage } from './pages/SettingsPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { useAuthStore } from './stores/authStore'
 
@@ -37,6 +42,46 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/consultations"
+            element={
+              <ProtectedRoute>
+                <ConsultationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/patients"
+            element={
+              <ProtectedRoute>
+                <PatientsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/calendar"
+            element={
+              <ProtectedRoute>
+                <CalendarPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/documents"
+            element={
+              <ProtectedRoute>
+                <DocumentsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
               </ProtectedRoute>
             }
           />
