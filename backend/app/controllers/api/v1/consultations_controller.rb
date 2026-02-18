@@ -139,8 +139,8 @@ module Api
             request: request
           )
 
-          # TODO: Trigger background job for transcription
-          # TranscriptionJob.perform_later(@consultation.id)
+          # Trigger background job for transcription
+          TranscriptionJob.perform_later(@consultation.id)
 
           render json: consultation_detail_json(@consultation), status: :ok
         rescue => e

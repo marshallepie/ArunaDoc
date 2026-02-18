@@ -5,6 +5,29 @@ import { consultationApi } from '../services/api'
 import { AudioRecorder } from '../components/consultations/AudioRecorder'
 import { AudioUploader } from '../components/consultations/AudioUploader'
 
+interface Transcript {
+  id: number
+  raw_transcript: string
+  structured_data: {
+    presenting_complaint?: string
+    history?: string
+    examination_findings?: string
+    diagnosis?: string
+    treatment_plan?: string
+    follow_up_plan?: string
+    billing_triggers?: string[]
+    letters_required?: string[]
+  }
+  processing_status: string
+}
+
+interface ClinicalDocument {
+  id: number
+  document_type: string
+  status: string
+  approved_at?: string
+}
+
 interface Consultation {
   id: number
   patient_name: string
@@ -17,6 +40,8 @@ interface Consultation {
   consultant: string
   notes?: string
   recording_url?: string
+  transcript?: Transcript
+  clinical_documents?: ClinicalDocument[]
   created_at: string
 }
 
@@ -34,6 +59,22 @@ export const ConsultationDetailPage = () => {
   useEffect(() => {
     loadConsultation()
   }, [id])
+
+  // Poll for updates when processing is in progress
+  useEffect(() => {
+    if (!consultation) return
+
+    const processingStatuses = ['transcribing', 'extracting', 'generating_documents']
+    const isProcessing = processingStatuses.includes(consultation.processing_status)
+
+    if (isProcessing) {
+      const interval = setInterval(() => {
+        loadConsultation()
+      }, 5000) // Poll every 5 seconds
+
+      return () => clearInterval(interval)
+    }
+  }, [consultation?.processing_status])
 
   const loadConsultation = async () => {
     try {
@@ -291,20 +332,120 @@ export const ConsultationDetailPage = () => {
               )}
             </div>
 
-            {/* Transcript Section (Placeholder) */}
+            {/* Transcript Section */}
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Transcript</h2>
-              <div className="text-center py-8 text-sm text-gray-500">
-                <p>Transcript will appear here after the recording is processed</p>
-              </div>
+              {!consultation.recording_url ? (
+                <div className="text-center py-8 text-sm text-gray-500">
+                  <p>Upload a recording to generate a transcript</p>
+                </div>
+              ) : consultation.transcript?.raw_transcript ? (
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                    <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                      {consultation.transcript.raw_transcript}
+                    </p>
+                  </div>
+                  {/* Structured Data */}
+                  {consultation.transcript.structured_data && (
+                    <div className="border-t border-gray-200 pt-4">
+                      <h3 className="text-sm font-medium text-gray-900 mb-3">Extracted Information</h3>
+                      <dl className="grid grid-cols-1 gap-4">
+                        {consultation.transcript.structured_data.presenting_complaint && (
+                          <div>
+                            <dt className="text-xs font-medium text-gray-500 mb-1">Presenting Complaint</dt>
+                            <dd className="text-sm text-gray-900">
+                              {consultation.transcript.structured_data.presenting_complaint}
+                            </dd>
+                          </div>
+                        )}
+                        {consultation.transcript.structured_data.diagnosis && (
+                          <div>
+                            <dt className="text-xs font-medium text-gray-500 mb-1">Diagnosis</dt>
+                            <dd className="text-sm text-gray-900">
+                              {consultation.transcript.structured_data.diagnosis}
+                            </dd>
+                          </div>
+                        )}
+                        {consultation.transcript.structured_data.treatment_plan && (
+                          <div>
+                            <dt className="text-xs font-medium text-gray-500 mb-1">Treatment Plan</dt>
+                            <dd className="text-sm text-gray-900">
+                              {consultation.transcript.structured_data.treatment_plan}
+                            </dd>
+                          </div>
+                        )}
+                      </dl>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mx-auto mb-3" />
+                  <p className="text-sm text-gray-600">
+                    {consultation.processing_status === 'transcribing' && 'Transcribing audio...'}
+                    {consultation.processing_status === 'extracting' && 'Extracting medical data...'}
+                    {consultation.processing_status === 'generating_documents' && 'Generating documents...'}
+                    {consultation.processing_status === 'pending' && 'Processing will begin shortly...'}
+                  </p>
+                </div>
+              )}
             </div>
 
-            {/* Clinical Documents Section (Placeholder) */}
+            {/* Clinical Documents Section */}
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Clinical Documents</h2>
-              <div className="text-center py-8 text-sm text-gray-500">
-                <p>AI-generated documents will appear here after processing</p>
-              </div>
+              {!consultation.clinical_documents || consultation.clinical_documents.length === 0 ? (
+                <div className="text-center py-8 text-sm text-gray-500">
+                  {!consultation.recording_url ? (
+                    <p>Documents will be generated after uploading a recording</p>
+                  ) : consultation.processing_status === 'ready_for_review' ? (
+                    <p>No documents generated yet</p>
+                  ) : (
+                    <>
+                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mx-auto mb-3" />
+                      <p>Generating clinical documents...</p>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {consultation.clinical_documents.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                    >
+                      <div className="flex items-center">
+                        <svg className="h-8 w-8 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fillRule="evenodd"
+                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-gray-900 capitalize">
+                            {doc.document_type.replace('_', ' ')}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Status:{' '}
+                            <span
+                              className={`capitalize ${
+                                doc.status === 'approved' ? 'text-green-600' : 'text-yellow-600'
+                              }`}
+                            >
+                              {doc.status}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                      <button className="px-3 py-1 text-sm font-medium text-primary-600 hover:text-primary-700 border border-primary-600 rounded-md hover:bg-primary-50">
+                        View
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
