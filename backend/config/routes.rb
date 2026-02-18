@@ -32,6 +32,7 @@ Rails.application.routes.draw do
       resources :consultations do
         member do
           post :upload_recording
+          post :upload_audio
         end
       end
     end
