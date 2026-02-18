@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
 import { consultationApi } from '../services/api'
+import { AudioRecorder } from '../components/consultations/AudioRecorder'
+import { AudioUploader } from '../components/consultations/AudioUploader'
 
 interface Consultation {
   id: number
@@ -24,6 +26,10 @@ export const ConsultationDetailPage = () => {
   const [consultation, setConsultation] = useState<Consultation | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showRecorder, setShowRecorder] = useState(false)
+  const [showUploader, setShowUploader] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   useEffect(() => {
     loadConsultation()
@@ -40,6 +46,53 @@ export const ConsultationDetailPage = () => {
       setError(err.response?.data?.error || err.message || 'Failed to load consultation')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRecordingComplete = async (audioBlob: Blob) => {
+    try {
+      setUploading(true)
+      setUploadError(null)
+      setShowRecorder(false)
+
+      // Create FormData to upload audio file
+      const formData = new FormData()
+      formData.append('audio', audioBlob, `consultation-${id}-${Date.now()}.webm`)
+
+      // Upload the audio file (we'll create this endpoint next)
+      // For now, this is a placeholder - we'll implement the backend endpoint
+      const response = await consultationApi.uploadAudio(parseInt(id!), formData)
+
+      // Reload consultation to get updated data
+      await loadConsultation()
+    } catch (err: any) {
+      console.error('Error uploading recording:', err)
+      setUploadError(err.response?.data?.error || err.message || 'Failed to upload recording')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleFileSelected = async (file: File) => {
+    try {
+      setUploading(true)
+      setUploadError(null)
+      setShowUploader(false)
+
+      // Create FormData to upload audio file
+      const formData = new FormData()
+      formData.append('audio', file)
+
+      // Upload the audio file
+      const response = await consultationApi.uploadAudio(parseInt(id!), formData)
+
+      // Reload consultation to get updated data
+      await loadConsultation()
+    } catch (err: any) {
+      console.error('Error uploading file:', err)
+      setUploadError(err.response?.data?.error || err.message || 'Failed to upload file')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -205,7 +258,10 @@ export const ConsultationDetailPage = () => {
                     Record audio during the consultation or upload an existing recording
                   </p>
                   <div className="mt-4 flex justify-center gap-3">
-                    <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                    <button
+                      onClick={() => setShowRecorder(true)}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+                    >
                       <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           strokeLinecap="round"
@@ -216,7 +272,10 @@ export const ConsultationDetailPage = () => {
                       </svg>
                       Record Audio
                     </button>
-                    <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <button
+                      onClick={() => setShowUploader(true)}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    >
                       <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           strokeLinecap="round"
@@ -305,6 +364,74 @@ export const ConsultationDetailPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Upload Error Message */}
+        {uploadError && (
+          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-800">{uploadError}</p>
+              </div>
+              <div className="ml-auto pl-3">
+                <button
+                  onClick={() => setUploadError(null)}
+                  className="inline-flex text-red-400 hover:text-red-500"
+                >
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Uploading Overlay */}
+        {uploading && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" />
+              <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6">
+                <div className="flex flex-col items-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Uploading Recording</h3>
+                  <p className="text-sm text-gray-500 text-center">
+                    Please wait while we upload and process your audio file...
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Audio Recorder Modal */}
+        {showRecorder && (
+          <AudioRecorder
+            onRecordingComplete={handleRecordingComplete}
+            onCancel={() => setShowRecorder(false)}
+          />
+        )}
+
+        {/* Audio Uploader Modal */}
+        {showUploader && (
+          <AudioUploader
+            onFileSelected={handleFileSelected}
+            onCancel={() => setShowUploader(false)}
+          />
+        )}
       </div>
     </DashboardLayout>
   )

@@ -41,6 +41,10 @@ export const consultationApi = {
   delete: (id: number) => api.delete(`/api/v1/consultations/${id}`),
   uploadRecording: (id: number, recordingUrl: string) =>
     api.post(`/api/v1/consultations/${id}/upload_recording`, { recording_url: recordingUrl }),
+  uploadAudio: (id: number, formData: FormData) =>
+    api.post(`/api/v1/consultations/${id}/upload_audio`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 }
 
 export default api
