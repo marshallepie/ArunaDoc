@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
 import { consultationApi } from '../services/api'
 import { NewConsultationModal } from '../components/consultations/NewConsultationModal'
@@ -18,6 +19,7 @@ interface Consultation {
 }
 
 export const ConsultationsPage = () => {
+  const navigate = useNavigate()
   const [consultations, setConsultations] = useState<Consultation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -323,7 +325,12 @@ export const ConsultationsPage = () => {
                         {consultation.consultant}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-primary-600 hover:text-primary-900 mr-3">View</button>
+                        <button
+                          onClick={() => navigate(`/consultations/${consultation.id}`)}
+                          className="text-primary-600 hover:text-primary-900 mr-3"
+                        >
+                          View
+                        </button>
                         <button className="text-gray-600 hover:text-gray-900">Edit</button>
                       </td>
                     </tr>

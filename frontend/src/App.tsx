@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { ConsultationsPage } from './pages/ConsultationsPage'
+import { ConsultationDetailPage } from './pages/ConsultationDetailPage'
 import { PatientsPage } from './pages/PatientsPage'
 import { CalendarPage } from './pages/CalendarPage'
 import { DocumentsPage } from './pages/DocumentsPage'
@@ -50,6 +51,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ConsultationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/consultations/:id"
+            element={
+              <ProtectedRoute>
+                <ConsultationDetailPage />
               </ProtectedRoute>
             }
           />
