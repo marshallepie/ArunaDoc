@@ -5,6 +5,11 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable,
          :jwt_authenticatable, jwt_revocation_strategy: JwtDenylist
 
+  # Associations
+  has_many :patients, dependent: :destroy
+  has_many :consultations, dependent: :destroy
+  has_many :audit_entries, dependent: :destroy
+
   # Enums for roles and status
   enum role: { consultant: 0, secretary: 1, admin: 2 }
   enum status: { active: 0, inactive: 1, suspended: 2 }
