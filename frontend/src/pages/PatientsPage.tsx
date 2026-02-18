@@ -69,7 +69,7 @@ export const PatientsPage = () => {
 
   const filteredPatients = patients.filter((patient) =>
     patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    patient.email.toLowerCase().includes(searchQuery.toLowerCase())
+    patient.email?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const calculateAge = (dob: string) => {
@@ -137,9 +137,9 @@ export const PatientsPage = () => {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Active Patients</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">With Email</dt>
                     <dd className="text-2xl font-semibold text-gray-900">
-                      {patients.filter((p) => p.status === 'active').length}
+                      {patients.filter((p) => p.email).length}
                     </dd>
                   </dl>
                 </div>
@@ -151,13 +151,13 @@ export const PatientsPage = () => {
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <span className="text-3xl">📅</span>
+                  <span className="text-3xl">📞</span>
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Upcoming Appointments</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">With Phone</dt>
                     <dd className="text-2xl font-semibold text-gray-900">
-                      {patients.reduce((sum, p) => sum + p.upcoming_appointments, 0)}
+                      {patients.filter((p) => p.phone).length}
                     </dd>
                   </dl>
                 </div>
@@ -173,8 +173,14 @@ export const PatientsPage = () => {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">New This Month</dt>
-                    <dd className="text-2xl font-semibold text-gray-900">0</dd>
+                    <dt className="text-sm font-medium text-gray-500 truncate">This Month</dt>
+                    <dd className="text-2xl font-semibold text-gray-900">
+                      {patients.filter(p => {
+                        const created = new Date(p.created_at)
+                        const now = new Date()
+                        return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear()
+                      }).length}
+                    </dd>
                   </dl>
                 </div>
               </div>
@@ -247,40 +253,29 @@ export const PatientsPage = () => {
                       </div>
                       <div className="ml-3">
                         <h3 className="text-lg font-medium text-gray-900">{patient.name}</h3>
-                        <p className="text-sm text-gray-500">{calculateAge(patient.date_of_birth)} years old</p>
+                        <p className="text-sm text-gray-500">
+                          {patient.date_of_birth ? `${calculateAge(patient.date_of_birth)} years old` : 'Age unknown'}
+                        </p>
                       </div>
                     </div>
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        patient.status === 'active'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {patient.status}
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                      Active
                     </span>
                   </div>
 
                   <dl className="space-y-2">
                     <div>
                       <dt className="text-xs font-medium text-gray-500">Email</dt>
-                      <dd className="text-sm text-gray-900 truncate">{patient.email}</dd>
+                      <dd className="text-sm text-gray-900 truncate">{patient.email || 'Not provided'}</dd>
                     </div>
                     <div>
                       <dt className="text-xs font-medium text-gray-500">Phone</dt>
-                      <dd className="text-sm text-gray-900">{patient.phone}</dd>
+                      <dd className="text-sm text-gray-900">{patient.phone || 'Not provided'}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-medium text-gray-500">Last Visit</dt>
-                      <dd className="text-sm text-gray-900">{formatDate(patient.last_visit)}</dd>
+                      <dt className="text-xs font-medium text-gray-500">Added</dt>
+                      <dd className="text-sm text-gray-900">{formatDate(new Date(patient.created_at).toISOString().split('T')[0])}</dd>
                     </div>
-                    {patient.upcoming_appointments > 0 && (
-                      <div className="pt-2 border-t border-gray-200">
-                        <span className="text-xs font-medium text-primary-600">
-                          {patient.upcoming_appointments} upcoming appointment{patient.upcoming_appointments > 1 ? 's' : ''}
-                        </span>
-                      </div>
-                    )}
                   </dl>
 
                   <div className="mt-4 flex gap-2">
