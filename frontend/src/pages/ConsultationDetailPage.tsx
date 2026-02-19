@@ -4,6 +4,7 @@ import { DashboardLayout } from '../components/layout/DashboardLayout'
 import { consultationApi } from '../services/api'
 import { AudioRecorder } from '../components/consultations/AudioRecorder'
 import { AudioUploader } from '../components/consultations/AudioUploader'
+import { DocumentViewer } from '../components/consultations/DocumentViewer'
 
 interface Transcript {
   id: number
@@ -26,6 +27,12 @@ interface ClinicalDocument {
   document_type: string
   status: string
   approved_at?: string
+}
+
+interface FullDocument extends ClinicalDocument {
+  content: string
+  version: number
+  created_at: string
 }
 
 interface Consultation {
@@ -55,6 +62,8 @@ export const ConsultationDetailPage = () => {
   const [showUploader, setShowUploader] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [selectedDocument, setSelectedDocument] = useState<FullDocument | null>(null)
+  const [loadingDocument, setLoadingDocument] = useState(false)
 
   useEffect(() => {
     loadConsultation()
@@ -135,6 +144,28 @@ export const ConsultationDetailPage = () => {
     } finally {
       setUploading(false)
     }
+  }
+
+  const handleViewDocument = async (documentId: number) => {
+    try {
+      setLoadingDocument(true)
+      const response = await consultationApi.getDocument(parseInt(id!), documentId)
+      setSelectedDocument(response.data)
+    } catch (err: any) {
+      console.error('Error loading document:', err)
+      setUploadError(err.response?.data?.error || err.message || 'Failed to load document')
+    } finally {
+      setLoadingDocument(false)
+    }
+  }
+
+  const handleCloseDocument = () => {
+    setSelectedDocument(null)
+  }
+
+  const handleDocumentUpdate = async () => {
+    setSelectedDocument(null)
+    await loadConsultation()
   }
 
   const getStatusColor = (status: Consultation['status']) => {
@@ -439,8 +470,12 @@ export const ConsultationDetailPage = () => {
                           </p>
                         </div>
                       </div>
-                      <button className="px-3 py-1 text-sm font-medium text-primary-600 hover:text-primary-700 border border-primary-600 rounded-md hover:bg-primary-50">
-                        View
+                      <button
+                        onClick={() => handleViewDocument(doc.id)}
+                        disabled={loadingDocument}
+                        className="px-3 py-1 text-sm font-medium text-primary-600 hover:text-primary-700 border border-primary-600 rounded-md hover:bg-primary-50 disabled:opacity-50"
+                      >
+                        {loadingDocument ? 'Loading...' : 'View'}
                       </button>
                     </div>
                   ))}
@@ -571,6 +606,16 @@ export const ConsultationDetailPage = () => {
           <AudioUploader
             onFileSelected={handleFileSelected}
             onCancel={() => setShowUploader(false)}
+          />
+        )}
+
+        {/* Document Viewer Modal */}
+        {selectedDocument && (
+          <DocumentViewer
+            document={selectedDocument}
+            consultationId={parseInt(id!)}
+            onClose={handleCloseDocument}
+            onUpdate={handleDocumentUpdate}
           />
         )}
       </div>

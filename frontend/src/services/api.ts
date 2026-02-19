@@ -45,6 +45,12 @@ export const consultationApi = {
     api.post(`/api/v1/consultations/${id}/upload_audio`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
+  getDocument: (consultationId: number, documentId: number) =>
+    api.get(`/api/v1/consultations/${consultationId}/documents/${documentId}`),
+  updateDocument: (consultationId: number, documentId: number, data: any) =>
+    api.patch(`/api/v1/consultations/${consultationId}/documents/${documentId}`, { clinical_document: data }),
+  approveDocument: (consultationId: number, documentId: number) =>
+    api.post(`/api/v1/consultations/${consultationId}/documents/${documentId}/approve`),
 }
 
 export default api

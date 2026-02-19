@@ -34,6 +34,11 @@ Rails.application.routes.draw do
           post :upload_recording
           post :upload_audio
         end
+        resources :documents, controller: 'clinical_documents', only: [:show, :update] do
+          member do
+            post :approve
+          end
+        end
       end
     end
   end
